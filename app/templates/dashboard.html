@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard — Meridian General</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14232A; --ink-2: #1B2E37; --ink-3: #223942;
+    --teal: #1F6F63; --teal-dark: #123B34; --teal-light: #E4F0EC;
+    --amber: #E8A33D; --amber-dark: #B97A1E;
+    --red: #C64B3C; --red-light: #FBE6E2;
+    --paper: #F4F7F5; --paper-2: #FFFFFF;
+    --line: #DDE6E2; --line-dark: #2C4048;
+    --muted: #5C6E68; --muted-dark: #9FB4AE;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', sans-serif; background: var(--paper); color: var(--ink); }
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  aside.sidebar { width: 232px; background: var(--ink); color: var(--paper); flex-shrink: 0;
+                  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .sb-brand { padding: 1.5rem 1.4rem 1.2rem; font-family: 'IBM Plex Serif', serif; font-size: 1.12rem; font-weight: 600; }
+  .sb-brand span { color: var(--amber); }
+  nav.sb-nav { flex: 1; padding: .5rem .8rem; overflow-y: auto; }
+  .sb-section-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-dark);
+                       padding: 1rem .6rem .35rem; }
+  .sb-link { display: block; padding: .6rem .7rem; border-radius: 6px; color: var(--muted-dark); text-decoration: none;
+             font-size: .88rem; cursor: pointer; margin-bottom: .1rem; }
+  .sb-link:hover { background: var(--ink-2); color: var(--paper); }
+  .sb-link.active { background: var(--teal); color: #fff; font-weight: 500; }
+  .sb-user { padding: 1rem 1.4rem; border-top: 1px solid var(--line-dark); }
+  .sb-user .name { font-size: .88rem; font-weight: 600; }
+  .sb-user .role { font-size: .74rem; color: var(--muted-dark); text-transform: capitalize; margin-bottom: .6rem; }
+  .sb-signout { font-size: .8rem; color: #E8887A; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
+
+  /* Main */
+  main.content { flex: 1; padding: 2rem 2.4rem 4rem; max-width: 1100px; }
+  .topbar { margin-bottom: 1.8rem; }
+  .topbar h1 { font-family: 'IBM Plex Serif', serif; font-size: 1.5rem; font-weight: 600; margin: 0 0 .2rem; }
+  .topbar p { color: var(--muted); font-size: .88rem; margin: 0; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Cards / stats */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 1.1rem 1.2rem; }
+  .stat-card .num { font-family: 'IBM Plex Serif', serif; font-size: 1.7rem; font-weight: 600; }
+  .stat-card .label { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+  .stat-card.warn .num { color: var(--red); }
+
+  section.panel { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 1.4rem 1.5rem; margin-bottom: 1.6rem; }
+  section.panel h2 { font-size: 1.02rem; font-weight: 600; margin: 0 0 .2rem; font-family: 'IBM Plex Sans', sans-serif; }
+  section.panel p.panel-sub { color: var(--muted); font-size: .82rem; margin: 0 0 1.1rem; }
+
+  /* Forms */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .7rem; margin-bottom: .9rem; }
+  .form-grid.wide { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  label.f-label { display: block; font-size: .74rem; color: var(--muted); margin-bottom: .25rem; }
+  input, select, textarea { width: 100%; padding: .55rem .65rem; border-radius: 5px; border: 1px solid var(--line);
+          background: var(--paper); color: var(--ink); font-family: inherit; font-size: .87rem; }
+  textarea { resize: vertical; min-height: 60px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--teal); }
+  button { font-family: inherit; cursor: pointer; }
+  .btn { background: var(--ink-2); color: #fff; border: none; padding: .55rem 1rem; border-radius: 5px; font-size: .84rem; }
+  .btn:hover { opacity: .88; }
+  .btn.primary { background: var(--teal); }
+  .btn.primary:hover { background: var(--teal-dark); }
+  .btn.danger { background: var(--red); }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+  .btn.small { padding: .35rem .7rem; font-size: .78rem; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  th, td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: .76rem; text-transform: uppercase; letter-spacing: .03em; }
+  tr:last-child td { border-bottom: none; }
+  .empty-row td { color: var(--muted); font-style: italic; }
+
+  .badge { display: inline-block; padding: .18rem .55rem; border-radius: 4px; font-size: .74rem; font-weight: 500; }
+  .badge.normal { background: var(--teal-light); color: var(--teal-dark); }
+  .badge.suspicious { background: #FDF1DC; color: var(--amber-dark); }
+  .badge.critical, .badge.blocked { background: var(--red-light); color: var(--red); }
+  .badge.scheduled { background: #E4EEFB; color: #1F4E8C; }
+  .badge.completed { background: var(--teal-light); color: var(--teal-dark); }
+  .badge.cancelled, .badge.no_show { background: #EEE; color: var(--muted); }
+
+  .row-actions { display: flex; gap: .4rem; }
+  .toggle-form-link { font-size: .82rem; color: var(--teal); cursor: pointer; text-decoration: underline; margin-bottom: 1rem; display: inline-block; }
+  .hint { font-size: .78rem; color: var(--muted); margin-top: -.4rem; margin-bottom: .8rem; }
+
+  @media (max-width: 820px) {
+    .app { flex-direction: column; }
+    aside.sidebar { width: 100%; height: auto; position: relative; }
+    main.content { padding: 1.4rem 1.2rem 3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-brand">Meridian <span>General</span></div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-user">
+      <div class="name" id="sbUserName"></div>
+      <div class="role" id="sbUserRole"></div>
+      <button class="sb-signout" onclick="logout()">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <!-- OVERVIEW -->
+    <div class="view" id="view-overview">
+      <div class="topbar"><h1>Overview</h1><p>A quick look at today.</p></div>
+      <div class="stat-grid" id="overviewStats"></div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div class="view" id="view-patients">
+      <div class="topbar"><h1>Patients</h1><p>Registry of everyone Meridian General has seen.</p></div>
+      <section class="panel">
+        <span class="toggle-form-link" onclick="toggleEl('patientForm')">+ Register a new patient</span>
+        <div id="patientForm" style="display:none;">
+          <div class="form-grid wide">
+            <div><label class="f-label">Full name *</label><input id="pName" /></div>
+            <div><label class="f-label">Date of birth</label><input id="pDob" type="date" /></div>
+            <div><label class="f-label">Gender</label><select id="pGender"><option value="">—</option><option>Female</option><option>Male</option><option>Other</option></select></div>
+            <div><label class="f-label">Blood group</label><input id="pBlood" placeholder="O+" /></div>
+            <div><label class="f-label">Phone</label><input id="pPhone" /></div>
+            <div><label class="f-label">Email</label><input id="pEmail" /></div>
+            <div><label class="f-label">Emergency contact name</label><input id="pEmName" /></div>
+            <div><label class="f-label">Emergency contact phone</label><input id="pEmPhone" /></div>
+          </div>
+          <div class="form-grid wide">
+            <div><label class="f-label">Address</label><input id="pAddress" /></div>
+            <div><label class="f-label">Known allergies</label><input id="pAllergies" /></div>
+          </div>
+          <label class="f-label">Notes</label>
+          <textarea id="pNotes" style="margin-bottom:.8rem;"></textarea>
+          <button class="btn primary" onclick="createPatient()">Register patient</button>
+        </div>
+        <table id="patientsTable">
+          <thead><tr><th>Name</th><th>DOB</th><th>Phone</th><th>Blood</th><th>Appts</th><th>Records</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- APPOINTMENTS -->
+    <div class="view" id="view-appointments">
+      <div class="topbar"><h1>Appointments</h1><p>Scheduling across the hospital.</p></div>
+      <section class="panel">
+        <span class="toggle-form-link" onclick="toggleEl('apptForm')">+ Schedule an appointment</span>
+        <div id="apptForm" style="display:none;">
+          <div class="form-grid wide">
+            <div><label class="f-label">Patient *</label><select id="aPatient"></select></div>
+            <div><label class="f-label">Doctor *</label><select id="aDoctor"></select></div>
+            <div><label class="f-label">Date &amp; time *</label><input id="aWhen" type="datetime-local" /></div>
+            <div><label class="f-label">Reason</label><input id="aReason" placeholder="Follow-up, fever, ..." /></div>
+          </div>
+          <button class="btn primary" onclick="createAppointment()">Schedule</button>
+        </div>
+        <table id="apptsTable">
+          <thead><tr><th>Patient</th><th>Doctor</th><th>When</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- MEDICAL RECORDS (doctor/admin only) -->
+    <div class="view" id="view-records">
+      <div class="topbar"><h1>Medical Records</h1><p>Visit notes, vitals, diagnosis, and prescriptions. Doctor-authored only.</p></div>
+      <section class="panel">
+        <span class="toggle-form-link" onclick="toggleEl('recordForm')">+ Add a visit record</span>
+        <div id="recordForm" style="display:none;">
+          <div class="form-grid wide">
+            <div><label class="f-label">Patient *</label><select id="rPatient"></select></div>
+            <div><label class="f-label">Blood pressure</label><input id="rBp" placeholder="120/80" /></div>
+            <div><label class="f-label">Heart rate (bpm)</label><input id="rHr" type="number" /></div>
+            <div><label class="f-label">Temperature (°C)</label><input id="rTemp" type="number" step="0.1" /></div>
+            <div><label class="f-label">Weight (kg)</label><input id="rWeight" type="number" step="0.1" /></div>
+          </div>
+          <label class="f-label">Diagnosis</label>
+          <textarea id="rDiagnosis" style="margin-bottom:.7rem;"></textarea>
+          <label class="f-label">Prescription</label>
+          <textarea id="rPrescription" style="margin-bottom:.7rem;"></textarea>
+          <label class="f-label">Notes</label>
+          <textarea id="rNotes" style="margin-bottom:.8rem;"></textarea>
+          <button class="btn primary" onclick="createRecord()">Save record</button>
+        </div>
+        <table id="recordsTable">
+          <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Diagnosis</th><th>Prescription</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- DEPARTMENTS (admin) -->
+    <div class="view" id="view-departments">
+      <div class="topbar"><h1>Departments</h1><p>Shown publicly on the homepage.</p></div>
+      <section class="panel">
+        <span class="toggle-form-link" onclick="toggleEl('deptForm')">+ Add department</span>
+        <div id="deptForm" style="display:none;">
+          <div class="form-grid wide">
+            <div><label class="f-label">Name *</label><input id="dName" /></div>
+            <div><label class="f-label">Icon (emoji)</label><input id="dIcon" placeholder="🫀" /></div>
+          </div>
+          <label class="f-label">Description</label>
+          <textarea id="dDesc" style="margin-bottom:.8rem;"></textarea>
+          <button class="btn primary" onclick="createDepartment()">Add department</button>
+        </div>
+        <table id="deptsTable">
+          <thead><tr><th>Icon</th><th>Name</th><th>Description</th><th>Doctors</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- STAFF & USERS (admin) -->
+    <div class="view" id="view-users">
+      <div class="topbar"><h1>Staff &amp; Users</h1><p>Accounts, roles, and access control.</p></div>
+      <section class="panel">
+        <span class="toggle-form-link" onclick="toggleEl('userForm')">+ Create account</span>
+        <div id="userForm" style="display:none;">
+          <div class="form-grid wide">
+            <div><label class="f-label">Full name</label><input id="newFullName" /></div>
+            <div><label class="f-label">Username *</label><input id="newUsername" /></div>
+            <div><label class="f-label">Password *</label><input id="newPassword" type="password" /></div>
+            <div><label class="f-label">Role *</label><select id="newRole" onchange="toggleDoctorFields()">
+              <option value="staff">Staff</option><option value="doctor">Doctor</option><option value="admin">Admin</option>
+            </select></div>
+          </div>
+          <div id="doctorFields" style="display:none;">
+            <div class="form-grid wide">
+              <div><label class="f-label">Department</label><select id="newDeptId"></select></div>
+              <div><label class="f-label">Specialization</label><input id="newSpecialization" placeholder="Cardiologist" /></div>
+              <div><label class="f-label">Qualification</label><input id="newQualification" placeholder="MD, DM" /></div>
+              <div><label class="f-label">Years of experience</label><input id="newYears" type="number" /></div>
+            </div>
+          </div>
+          <button class="btn primary" onclick="createUser()">Create account</button>
+        </div>
+        <table id="usersTable">
+          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- ML ALERTS (admin) -->
+    <div class="view" id="view-alerts">
+      <div class="topbar"><h1>Anomaly Alerts</h1><p>Real-time Isolation Forest scoring of staff activity.</p></div>
+      <section class="panel">
+        <div class="row-actions" style="margin-bottom:1rem;">
+          <button class="btn ghost small" onclick="loadAlerts()">Refresh</button>
+          <button class="btn danger small" onclick="simulateAttack()">Simulate attack on selected user ⚡</button>
+        </div>
+        <p class="hint" id="simHint">Select a user from Staff &amp; Users first (their row will say "selected").</p>
+        <table id="alertsTable">
+          <thead><tr><th>User</th><th>Endpoint</th><th>Score</th><th>Risk</th><th>Time</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- ACTIVITY LOG (admin) -->
+    <div class="view" id="view-logs">
+      <div class="topbar"><h1>Activity Log</h1><p>Every authenticated request, as it happened.</p></div>
+      <section class="panel">
+        <table id="logsTable">
+          <thead><tr><th>User</th><th>Endpoint</th><th>Status</th><th>Risk</th><th>Time</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const access = localStorage.getItem('cp_access');
+const user = JSON.parse(localStorage.getItem('cp_user') || 'null');
+if (!access || !user) window.location.href = '/login';
+
+document.getElementById('sbUserName').textContent = user.full_name || user.username;
+document.getElementById('sbUserRole').textContent = user.role;
+
+function authHeaders() { return { 'Authorization': 'Bearer ' + access, 'Content-Type': 'application/json' }; }
+
+function logout() {
+  fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).finally(() => {
+    localStorage.clear();
+    window.location.href = '/';
+  });
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: authHeaders() });
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (res.status === 401) {
+    alert('Session ended (expired or revoked). Please sign in again.');
+    localStorage.clear();
+    window.location.href = '/login';
+    return null;
+  }
+  if (!res.ok) {
+    alert((data && (data.message || data.error)) || 'Request failed');
+    return null;
+  }
+  return data;
+}
+
+function toggleEl(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ---- Navigation ----
+const NAV = [
+  { section: 'Workspace', items: [
+    { id: 'overview', label: 'Overview', roles: ['admin','doctor','staff'] },
+    { id: 'patients', label: 'Patients', roles: ['admin','doctor','staff'] },
+    { id: 'appointments', label: 'Appointments', roles: ['admin','doctor','staff'] },
+    { id: 'records', label: 'Medical Records', roles: ['admin','doctor'] },
+  ]},
+  { section: 'Administration', items: [
+    { id: 'departments', label: 'Departments', roles: ['admin'] },
+    { id: 'users', label: 'Staff & Users', roles: ['admin'] },
+    { id: 'alerts', label: 'Anomaly Alerts', roles: ['admin'] },
+    { id: 'logs', label: 'Activity Log', roles: ['admin'] },
+  ]},
+];
+
+function buildNav() {
+  const nav = document.getElementById('sbNav');
+  nav.innerHTML = '';
+  NAV.forEach(group => {
+    const visible = group.items.filter(i => i.roles.includes(user.role));
+    if (!visible.length) return;
+    nav.innerHTML += `<div class="sb-section-label">${group.section}</div>`;
+    visible.forEach(i => {
+      nav.innerHTML += `<a class="sb-link" id="nav-${i.id}" onclick="switchView('${i.id}')">${i.label}</a>`;
+    });
+  });
+}
+
+const LOADERS = {
+  overview: loadOverview, patients: loadPatients, appointments: loadAppointments,
+  records: loadRecords, departments: loadDepartments, users: loadUsers,
+  alerts: loadAlerts, logs: loadLogs,
+};
+
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  const link = document.getElementById('nav-' + id);
+  if (link) link.classList.add('active');
+  window.location.hash = id;
+  if (LOADERS[id]) LOADERS[id]();
+}
+
+// ---- Overview ----
+async function loadOverview() {
+  const patients = await api('/api/patients');
+  const appts = await api('/api/appointments');
+  const grid = document.getElementById('overviewStats');
+  let html = '';
+  if (patients) html += `<div class="stat-card"><div class="num">${patients.length}</div><div class="label">Patients registered</div></div>`;
+  if (appts) {
+    const upcoming = appts.filter(a => a.status === 'scheduled').length;
+    html += `<div class="stat-card"><div class="num">${upcoming}</div><div class="label">Upcoming appointments</div></div>`;
+  }
+  if (user.role === 'admin') {
+    const alerts = await api('/api/admin/alerts');
+    const users = await api('/api/admin/users');
+    if (alerts) html += `<div class="stat-card ${alerts.length ? 'warn' : ''}"><div class="num">${alerts.length}</div><div class="label">Open anomaly alerts</div></div>`;
+    if (users) {
+      const blocked = users.filter(u => u.is_blocked).length;
+      html += `<div class="stat-card ${blocked ? 'warn' : ''}"><div class="num">${blocked}</div><div class="label">Blocked accounts</div></div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+
+// ---- Patients ----
+let patientsCache = [];
+async function loadPatients() {
+  const data = await api('/api/patients');
+  if (!data) return;
+  patientsCache = data;
+  const tbody = document.querySelector('#patientsTable tbody');
+  tbody.innerHTML = data.length ? '' : '<tr class="empty-row"><td colspan="7">No patients registered yet.</td></tr>';
+  data.forEach(p => {
+    tbody.innerHTML += `<tr>
+      <td>${p.name}</td><td>${p.date_of_birth || '—'}</td><td>${p.phone || '—'}</td><td>${p.blood_group || '—'}</td>
+      <td>${p.appointment_count ?? '—'}</td><td>${p.record_count ?? '—'}</td>
+      <td></td>
+    </tr>`;
+  });
+  populatePatientDropdowns();
+}
+
+async function createPatient() {
+  const body = {
+    name: val('pName'), date_of_birth: val('pDob'), gender: val('pGender'),
+    phone: val('pPhone'), email: val('pEmail'), address: val('pAddress'),
+    blood_group: val('pBlood'), emergency_contact_name: val('pEmName'),
+    emergency_contact_phone: val('pEmPhone'), known_allergies: val('pAllergies'),
+    notes: val('pNotes'),
+  };
+  if (!body.name) { alert('Name is required'); return; }
+  const result = await api('/api/patients', { method: 'POST', body: JSON.stringify(body) });
+  if (!result) return;
+  ['pName','pDob','pGender','pPhone','pEmail','pAddress','pBlood','pEmName','pEmPhone','pAllergies','pNotes'].forEach(id => document.getElementById(id).value = '');
+  loadPatients();
+}
+
+function val(id) { return document.getElementById(id).value; }
+
+function populatePatientDropdowns() {
+  ['aPatient', 'rPatient'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = patientsCache.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  });
+}
+
+// ---- Appointments ----
+let doctorsCache = [];
+async function loadAppointments() {
+  const data = await api('/api/appointments');
+  if (!data) return;
+  const tbody = document.querySelector('#apptsTable tbody');
+  tbody.innerHTML = data.length ? '' : '<tr class="empty-row"><td colspan="6">No appointments yet.</td></tr>';
+  data.forEach(a => {
+    const when = new Date(a.scheduled_at).toLocaleString();
+    tbody.innerHTML += `<tr>
+      <td>${a.patient_name || '—'}</td><td>${a.doctor_name || '—'}</td><td>${when}</td>
+      <td>${a.reason || '—'}</td><td><span class="badge ${a.status}">${a.status.replace('_',' ')}</span></td>
+      <td>${a.status === 'scheduled' ? `<button class="btn small ghost" onclick="markAppt(${a.id},'completed')">Complete</button> <button class="btn small ghost" onclick="markAppt(${a.id},'cancelled')">Cancel</button>` : ''}</td>
+    </tr>`;
+  });
+  await loadDoctorsForDropdown();
+}
+
+async function loadDoctorsForDropdown() {
+  const data = await api('/api/doctors');
+  if (!data) return;
+  doctorsCache = data;
+  ['aDoctor'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = data.map(d => `<option value="${d.user_id}">${d.doctor_name}${d.specialization ? ' — ' + d.specialization : ''}</option>`).join('');
+  });
+}
+
+async function createAppointment() {
+  const body = {
+    patient_id: parseInt(val('aPatient')), doctor_id: parseInt(val('aDoctor')),
+    scheduled_at: val('aWhen'), reason: val('aReason'),
+  };
+  if (!body.patient_id || !body.doctor_id || !val('aWhen')) { alert('Patient, doctor, and date/time are required'); return; }
+  const result = await api('/api/appointments', { method: 'POST', body: JSON.stringify(body) });
+  if (!result) return;
+  document.getElementById('aReason').value = '';
+  loadAppointments();
+}
+
+async function markAppt(id, status) {
+  await api(`/api/appointments/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+  loadAppointments();
+}
+
+// ---- Medical Records ----
+async function loadRecords() {
+  const data = await api('/api/medical-records');
+  if (!data) return;
+  const tbody = document.querySelector('#recordsTable tbody');
+  tbody.innerHTML = data.length ? '' : '<tr class="empty-row"><td colspan="5">No visit records yet.</td></tr>';
+  data.forEach(r => {
+    tbody.innerHTML += `<tr>
+      <td>${r.patient_name || '—'}</td><td>${r.doctor_name || '—'}</td>
+      <td>${new Date(r.visit_date).toLocaleDateString()}</td>
+      <td>${(r.diagnosis || '').slice(0,60)}</td><td>${(r.prescription || '').slice(0,60)}</td>
+    </tr>`;
+  });
+  if (!patientsCache.length) await loadPatients(); else populatePatientDropdowns();
+}
+
+async function createRecord() {
+  const body = {
+    patient_id: parseInt(val('rPatient')), blood_pressure: val('rBp'),
+    heart_rate_bpm: val('rHr') ? parseInt(val('rHr')) : null,
+    temperature_c: val('rTemp') ? parseFloat(val('rTemp')) : null,
+    weight_kg: val('rWeight') ? parseFloat(val('rWeight')) : null,
+    diagnosis: val('rDiagnosis'), prescription: val('rPrescription'), notes: val('rNotes'),
+  };
+  if (!body.patient_id) { alert('Select a patient'); return; }
+  const result = await api('/api/medical-records', { method: 'POST', body: JSON.stringify(body) });
+  if (!result) return;
+  ['rBp','rHr','rTemp','rWeight','rDiagnosis','rPrescription','rNotes'].forEach(id => document.getElementById(id).value = '');
+  loadRecords();
+}
+
+// ---- Departments ----
+let deptsCache = [];
+async function loadDepartments() {
+  const data = await api('/api/departments');
+  if (!data) return;
+  deptsCache = data;
+  const tbody = document.querySelector('#deptsTable tbody');
+  tbody.innerHTML = data.length ? '' : '<tr class="empty-row"><td colspan="4">No departments yet.</td></tr>';
+  data.forEach(d => {
+    tbody.innerHTML += `<tr><td>${d.icon || '🩺'}</td><td>${d.name}</td><td>${d.description || ''}</td><td>${d.doctor_count ?? 0}</td></tr>`;
+  });
+  const sel = document.getElementById('newDeptId');
+  if (sel) sel.innerHTML = '<option value="">—</option>' + data.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+}
+
+async function createDepartment() {
+  const body = { name: val('dName'), icon: val('dIcon') || '🩺', description: val('dDesc') };
+  if (!body.name) { alert('Name is required'); return; }
+  const result = await api('/api/departments', { method: 'POST', body: JSON.stringify(body) });
+  if (!result) return;
+  ['dName','dIcon','dDesc'].forEach(id => document.getElementById(id).value = '');
+  loadDepartments();
+}
+
+// ---- Users ----
+function toggleDoctorFields() {
+  document.getElementById('doctorFields').style.display = val('newRole') === 'doctor' ? 'block' : 'none';
+}
+
+let selectedUserId = null;
+async function loadUsers() {
+  const data = await api('/api/admin/users');
+  if (!data) return;
+  await loadDepartments(); // populates newDeptId dropdown
+  const tbody = document.querySelector('#usersTable tbody');
+  tbody.innerHTML = '';
+  data.forEach(u => {
+    const statusHtml = u.is_blocked
+      ? `<span class="badge blocked">BLOCKED</span>`
+      : `<span class="badge normal">active</span>`;
+    const blockBtn = u.is_blocked
+      ? `<button class="btn small ghost" onclick="unblockUser(${u.id})">Unblock</button>`
+      : `<button class="btn small ghost" onclick="blockUser(${u.id})">Block</button>`;
+    const selectBtn = `<button class="btn small ghost" onclick="selectedUserId=${u.id}; alert('Selected ' + '${u.username}' + ' for simulation')">Select</button>`;
+    tbody.innerHTML += `<tr>
+      <td>${u.full_name || u.username}</td><td>${u.username}</td><td>${u.role}</td>
+      <td>${statusHtml}</td>
+      <td class="row-actions">${selectBtn} ${blockBtn}</td>
+    </tr>`;
+  });
+}
+
+async function createUser() {
+  const body = {
+    full_name: val('newFullName'), username: val('newUsername'), password: val('newPassword'), role: val('newRole'),
+  };
+  if (body.role === 'doctor') {
+    body.department_id = val('newDeptId') ? parseInt(val('newDeptId')) : null;
+    body.specialization = val('newSpecialization');
+    body.qualification = val('newQualification');
+    body.years_experience = val('newYears') ? parseInt(val('newYears')) : 0;
+  }
+  if (!body.username || !body.password) { alert('Username and password required'); return; }
+  const result = await api('/api/admin/users', { method: 'POST', body: JSON.stringify(body) });
+  if (!result) return;
+  ['newFullName','newUsername','newPassword','newSpecialization','newQualification','newYears'].forEach(id => document.getElementById(id).value = '');
+  loadUsers();
+}
+
+async function blockUser(id) {
+  if (!confirm('Block this user? They will be logged out everywhere and cannot log back in until unblocked.')) return;
+  await api(`/api/admin/users/${id}/block`, { method: 'POST', body: JSON.stringify({ reason: 'manually blocked by admin' }) });
+  loadUsers();
+}
+async function unblockUser(id) {
+  await api(`/api/admin/users/${id}/unblock`, { method: 'POST' });
+  loadUsers();
+}
+
+// ---- Alerts ----
+async function loadAlerts() {
+  const data = await api('/api/admin/alerts');
+  if (!data) return;
+  const tbody = document.querySelector('#alertsTable tbody');
+  tbody.innerHTML = data.length ? '' : '<tr class="empty-row"><td colspan="5">No anomalies flagged yet.</td></tr>';
+  data.forEach(l => {
+    tbody.innerHTML += `<tr><td>${l.username||'—'}</td><td>${l.endpoint}</td><td>${(l.anomaly_score||0).toFixed(3)}</td>
+      <td><span class="badge ${l.risk_level}">${l.risk_level}</span></td><td>${new Date(l.timestamp).toLocaleTimeString()}</td></tr>`;
+  });
+}
+
+async function simulateAttack() {
+  if (!selectedUserId) { alert('Go to Staff & Users and click "Select" next to someone first.'); return; }
+  const result = await api(`/api/admin/simulate-attack/${selectedUserId}`, { method: 'POST' });
+  if (!result) return;
+  alert(`Simulated burst for ${result.user.username}\nAnomaly score: ${result.anomaly_score.toFixed(3)}\nRisk: ${result.risk_level}\nAuto-mitigated: ${result.auto_mitigated}`);
+  loadAlerts();
+  loadLogs();
+}
+
+// ---- Logs ----
+async function loadLogs() {
+  const data = await api('/api/admin/logs');
+  if (!data) return;
+  const tbody = document.querySelector('#logsTable tbody');
+  tbody.innerHTML = '';
+  data.forEach(l => {
+    tbody.innerHTML += `<tr><td>${l.username||'—'}</td><td>${l.endpoint}</td><td>${l.status_code}</td>
+      <td><span class="badge ${l.risk_level}">${l.risk_level}</span></td><td>${new Date(l.timestamp).toLocaleTimeString()}</td></tr>`;
+  });
+}
+
+// ---- Init ----
+buildNav();
+const startView = (window.location.hash || '#overview').slice(1);
+switchView(NAV.flatMap(g => g.items).some(i => i.id === startView && i.roles.includes(user.role)) ? startView : 'overview');
+</script>
+</body>
+</html>
