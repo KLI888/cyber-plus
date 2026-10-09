@@ -196,6 +196,6 @@ cyber-pulse/
 
 ### ⭐ If Cyber-Pulse helped or inspired you, give it a star!
 
-Built with 🛡️ by **Krushna Borase**
+Built with 🛡️ by **KLI888**
 
 </div>
