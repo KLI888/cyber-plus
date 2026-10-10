@@ -1,0 +1,18 @@
+# Ignore these files and directories
+*.log
+*.tmp
+node_modules/
+dist/
+.vscode/
+__pycache__/
+# Ignore environment files
+.env
+# Ignore OS generated files
+.DS_Store
+# Ignore IDE specific files
+.idea/
+# Ignore build artifacts
+build/
+# Ignore DB Files
+cyberpluse.db
+
