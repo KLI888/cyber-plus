@@ -5,6 +5,7 @@ node_modules/
 dist/
 .vscode/
 __pycache__/
+.venv/
 # Ignore environment files
 .env
 # Ignore OS generated files
@@ -14,5 +15,5 @@ __pycache__/
 # Ignore build artifacts
 build/
 # Ignore DB Files
-cyberpluse.db
+cyberpulse.db
 

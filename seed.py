@@ -18,6 +18,8 @@ app = create_app()
 
 with app.app_context():
 
+
+
     # --- Departments ---------------------------------------------------
     dept_defs = [
         ("Cardiology", "Heart health, from checkups to complex procedures.", "🫀"),
@@ -36,7 +38,7 @@ with app.app_context():
         depts[name] = d
     db.session.commit()
 
-    # --- Users + doctor profiles ----------------------------------------
+    # --- Users + doctor profiles   ----------------------------------------
     def ensure_user(username, password, role, full_name):
         u = User.query.filter_by(username=username).first()
         if u:
